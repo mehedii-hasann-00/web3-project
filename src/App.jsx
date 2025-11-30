@@ -74,7 +74,6 @@ export default function DeployToken() {
     setAccount(null);
     setNetworkInfo(null);
     localStorage.removeItem("account"); // Clear account from localStorage
-    setStatus("Wallet disconnected.");
   }
 
   // Get current network name and chainId from MetaMask
