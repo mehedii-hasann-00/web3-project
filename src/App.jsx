@@ -1,4 +1,4 @@
-import React, { useState, useEffect,  } from "react";
+import React, { useState, useEffect, } from "react";
 import { ethers } from "ethers";
 import tokenArtifact from "../abis/MyToken.json"; // ABI generated from the contract
 
@@ -149,111 +149,129 @@ export default function DeployToken() {
   }
 
   return (
-    <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white min-h-screen flex justify-center items-center py-10">
-      <div className="w-full max-w-lg bg-gray-800 p-8 rounded-lg shadow-lg">
-        <h2 className="text-3xl font-bold text-center mb-6">Deploy & Mint Custom ERC20 Token</h2>
+    <div className="bg-gradient-to-tr from-gray-500 via-gray-300 to-gray-800 text-white min-h-screen py-10">
+      <div className="flex justify-between">
+        <div></div>
+        <div>
+          {/* Wallet Connect/Disconnect Button */}
+          {account ? (
+            <div className="flex justify-center text-center mb-6 mx-6 gap-4">
+              <p className="mt-1">Connected: {account.slice(0, 6)}...{account.slice(-4)} <i class="fa fa-regular fa-copy cursor-pointer" onClick={() => {
+                navigator.clipboard.writeText(account);
+                alert("Copy succesful");
+              }}></i></p>
+              <button
+                onClick={disconnectWallet}
+                className="bg-gray-800 py-1 px-6 rounded-full"
+              >
+                Disconnect
+              </button>
+            </div>
+          ) : (
+            <div className="text-center mb-6 mx-6">
+              <button
+                onClick={connectWallet}
+                className="bg-gray-800 py-2 px-6 rounded-full"
+              >
+                Connect Wallet
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="flex justify-center items-center">
+        <div className="w-full max-w-lg bg-gray-800 p-8 rounded-lg shadow-lg">
+          <h2 className="text-3xl font-bold text-center mb-6">Deploy & Mint ERC20 Token</h2>
 
-        {/* Display Current Network Information */}
-        {networkInfo && (
-          <div className="bg-gray-700 p-2 rounded-md mb-6 text-center">
-            <span>Connected Network:</span> <strong>{networkInfo.name}</strong>
-          </div>
-        )}
+          {/* Display Current Network Information */}
+          {networkInfo && (
+            <div className="bg-gray-700 p-2 rounded-md mb-6 text-center">
+              <span>Connected Network:</span> <strong>{networkInfo.name}</strong>
+            </div>
+          )}
 
-        {/* Wallet Connect/Disconnect Button */}
-        {account ? (
-          <div className="text-center mb-6">
-            <p>Connected: {account.slice(0, 6)}...{account.slice(-4)} <i class="fa fa-regular fa-copy cursor-pointer" onClick={()=>{
-              navigator.clipboard.writeText(account);
-              alert("Copy succesful");
-            }}></i></p>
+          {/* Token Input Fields */}
+          <div className="space-y-4">
+            <div>
+              <label className="block text-lg">Token Name</label>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="bg-gray-700 text-white px-4 py-2 rounded-md w-full"
+                placeholder="My Custom Token"
+              />
+            </div>
+
+            <div>
+              <label className="block text-lg">Token Symbol</label>
+              <input
+                value={symbol}
+                onChange={(e) => setSymbol(e.target.value)}
+                className="bg-gray-700 text-white px-4 py-2 rounded-md w-full"
+                placeholder="MCT"
+              />
+            </div>
+
+            <div>
+              <label className="block text-lg">Initial Supply (whole tokens)</label>
+              <input
+                value={supply}
+                onChange={(e) => setSupply(e.target.value)}
+                className="bg-gray-700 text-white px-4 py-2 rounded-md w-full"
+                type="number"
+                placeholder="1000"
+              />
+            </div>
+
+            {networkInfo ? 
             <button
-              onClick={disconnectWallet}
-              className="bg-red-500 py-1 px-6 rounded-full mt-4"
+              onClick={deployAndMint}
+              className="bg-gradient-to-r from-gray-600 via-gray-500 to-gray-600 hover:bg-gradient-to-tr text-white py-3 px-6 rounded-full w-full mt-4"
+              disabled={!account}
             >
-              Disconnect Wallet
+              
+              Deploy & Mint  <span className="text-transparent bg-clip-text bg-gray-900 text-lg font-bold">{name ? name : null}</span> on {networkInfo ? networkInfo.name : 'current network'}
             </button>
-          </div>
-        ) : (
-          <div className="text-center mb-6">
+            :
             <button
               onClick={connectWallet}
-              className="bg-blue-500 py-2 px-6 rounded-full"
+              className="bg-gradient-to-r from-gray-600 via-gray-500 to-gray-600 hover:bg-gradient-to-tr text-white py-3 px-6 rounded-full w-full mt-4"
+              
             >
-              Connect MetaMask
+              
+              Connect Wallet
             </button>
-          </div>
-        )}
-
-        {/* Token Input Fields */}
-        <div className="space-y-4">
-          <div>
-            <label className="block text-lg">Token Name</label>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="bg-gray-700 text-white px-4 py-2 rounded-md w-full"
-              placeholder="My Custom Token"
-            />
+            }
           </div>
 
-          <div>
-            <label className="block text-lg">Token Symbol</label>
-            <input
-              value={symbol}
-              onChange={(e) => setSymbol(e.target.value)}
-              className="bg-gray-700 text-white px-4 py-2 rounded-md w-full"
-              placeholder="MCT"
-            />
-          </div>
-
-          <div>
-            <label className="block text-lg">Initial Supply (whole tokens)</label>
-            <input
-              value={supply}
-              onChange={(e) => setSupply(e.target.value)}
-              className="bg-gray-700 text-white px-4 py-2 rounded-md w-full"
-              type="number"
-              placeholder="1000"
-            />
-          </div>
-
-          <button
-            onClick={deployAndMint}
-            className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 hover:bg-gradient-to-l text-white py-3 px-6 rounded-full w-full mt-4"
-            disabled={!account}
-          >
-            Deploy & Mint  <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-700 to-gray-900 text-lg font-bold">{name ? name : null}</span> on {networkInfo ? networkInfo.name : 'current network'}
-          </button>
-        </div>
-
-        {/* Status Display */}
-        {status && (
-          <p className="mt-4 text-center text-sm">
-            <strong>Status:</strong> {status}
-          </p>
-        )}
-
-        {/* Display Contract Address after Successful Deployment */}
-        {tokenAddress && (
-          <p className="mt-4 text-center">
-            Your token contract address:<br />
-            <code>{tokenAddress}</code>
-          </p>
-        )}
-
-        {txHash && (
-          <div className="flex gap-2">
-            <p className="mt-4 text-center text-sm overflow-hidden text-ellipsis whitespace-nowrap">
-              <strong>Tx Hash :</strong> {txHash}
+          {/* Status Display */}
+          {status && (
+            <p className="mt-4 text-center text-sm">
+              <strong>Status:</strong> {status}
             </p>
-            <i class="fa fa-regular fa-copy cursor-pointer mt-4" onClick={()=>{
-              navigator.clipboard.writeText(txHash);
-              alert("Copy succesful");
-            }}></i>
-          </div>
-        )}
+          )}
 
+          {/* Display Contract Address after Successful Deployment */}
+          {tokenAddress && (
+            <p className="mt-4 text-center">
+              Your token contract address:<br />
+              <code>{tokenAddress}</code>
+            </p>
+          )}
+
+          {txHash && (
+            <div className="flex gap-2">
+              <p className="mt-4 text-center text-sm overflow-hidden text-ellipsis whitespace-nowrap">
+                <strong>Tx Hash :</strong> {txHash}
+              </p>
+              <i class="fa fa-regular fa-copy cursor-pointer mt-4" onClick={() => {
+                navigator.clipboard.writeText(txHash);
+                alert("Copy succesful");
+              }}></i>
+            </div>
+          )}
+
+        </div>
       </div>
     </div>
   );
