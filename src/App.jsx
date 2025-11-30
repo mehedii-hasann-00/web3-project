@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,  } from "react";
 import { ethers } from "ethers";
 import tokenArtifact from "../abis/MyToken.json"; // ABI generated from the contract
 
@@ -13,6 +13,7 @@ export default function DeployToken() {
   const [status, setStatus] = useState("");
   const [tokenAddress, setTokenAddress] = useState(null);
   const [networkInfo, setNetworkInfo] = useState(null); // Updated state for current network info
+  const [txHash, setTxHash] = useState(null);
 
   // Check if user is already connected (on page reload)
   useEffect(() => {
@@ -44,7 +45,7 @@ export default function DeployToken() {
     return () => {
       if (window.ethereum) {
         window.ethereum.removeListener("chainChanged", getNetwork);
-        window.ethereum.removeListener("accountsChanged", () => {});
+        window.ethereum.removeListener("accountsChanged", () => { });
       }
     };
   }, []);
@@ -82,7 +83,7 @@ export default function DeployToken() {
       try {
         const provider = new ethers.BrowserProvider(window.ethereum);
         const network = await provider.getNetwork();
-        
+
         // Use the network name/chain ID to display what the user is connected to
         setNetworkInfo({
           name: network.name,
@@ -130,8 +131,15 @@ export default function DeployToken() {
       await contract.waitForDeployment();
 
       const addr = await contract.getAddress();
+      setName('');
+      setSymbol('');
+      setSupply('');
       setTokenAddress(addr);
-      setStatus(`✅ Deployed successfully on ${networkInfo.name} at ${addr}`);
+      const deployTxResponse = contract.deploymentTransaction();
+      const txHash = deployTxResponse.hash;
+      setTxHash(txHash);
+      console.log("Transaction Hash:", txHash);
+      setStatus(` Deployed successfully on ${networkInfo.name} at ${addr}`);
 
       console.log("Token deployed at:", addr);
     } catch (err) {
@@ -148,18 +156,21 @@ export default function DeployToken() {
 
         {/* Display Current Network Information */}
         {networkInfo && (
-          <div className="bg-gray-700 p-2 rounded-md mb-6">
-            <strong>Connected Network:</strong> {networkInfo.name} (Chain ID: {networkInfo.chainId})
+          <div className="bg-gray-700 p-2 rounded-md mb-6 text-center">
+            <span>Connected Network:</span> <strong>{networkInfo.name}</strong>
           </div>
         )}
 
         {/* Wallet Connect/Disconnect Button */}
         {account ? (
           <div className="text-center mb-6">
-            <p>Connected: {account.slice(0, 6)}...{account.slice(-4)}</p>
+            <p>Connected: {account.slice(0, 6)}...{account.slice(-4)} <i class="fa fa-regular fa-copy cursor-pointer" onClick={()=>{
+              navigator.clipboard.writeText(account);
+              alert("Copy succesful");
+            }}></i></p>
             <button
               onClick={disconnectWallet}
-              className="bg-red-500 py-2 px-6 rounded-full mt-4"
+              className="bg-red-500 py-1 px-6 rounded-full mt-4"
             >
               Disconnect Wallet
             </button>
@@ -210,10 +221,10 @@ export default function DeployToken() {
 
           <button
             onClick={deployAndMint}
-            className="bg-purple-600 text-white py-3 px-6 rounded-full w-full mt-4"
+            className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 hover:bg-gradient-to-l text-white py-3 px-6 rounded-full w-full mt-4"
             disabled={!account}
           >
-            Deploy & Mint on Current Network
+            Deploy & Mint  <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-700 to-gray-900 text-lg font-bold">{name ? name : null}</span> on {networkInfo ? networkInfo.name : 'current network'}
           </button>
         </div>
 
@@ -231,6 +242,19 @@ export default function DeployToken() {
             <code>{tokenAddress}</code>
           </p>
         )}
+
+        {txHash && (
+          <div className="flex gap-2">
+            <p className="mt-4 text-center text-sm overflow-hidden text-ellipsis whitespace-nowrap">
+              <strong>Tx Hash :</strong> {txHash}
+            </p>
+            <i class="fa fa-regular fa-copy cursor-pointer mt-4" onClick={()=>{
+              navigator.clipboard.writeText(txHash);
+              alert("Copy succesful");
+            }}></i>
+          </div>
+        )}
+
       </div>
     </div>
   );
