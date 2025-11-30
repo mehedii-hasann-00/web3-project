@@ -1,17 +1,237 @@
-import { useState } from 'react'
+import React, { useState, useEffect } from "react";
+import { ethers } from "ethers";
+import tokenArtifact from "../abis/MyToken.json"; // ABI generated from the contract
 
-function App() {
-  const [count, setCount] = useState(0);
+const ABI = tokenArtifact.abi;
+const BYTECODE = tokenArtifact.bytecode;
+
+export default function DeployToken() {
+  const [account, setAccount] = useState(null);
+  const [name, setName] = useState("");
+  const [symbol, setSymbol] = useState("");
+  const [supply, setSupply] = useState("");
+  const [status, setStatus] = useState("");
+  const [tokenAddress, setTokenAddress] = useState(null);
+  const [networkInfo, setNetworkInfo] = useState(null); // Updated state for current network info
+
+  // Check if user is already connected (on page reload)
+  useEffect(() => {
+    const storedAccount = localStorage.getItem("account");
+    if (storedAccount) {
+      setAccount(storedAccount);
+      getNetwork();
+    }
+
+    // Listen for chain changes to update the network status dynamically
+    if (window.ethereum) {
+      // Reload network info when the chain is changed in MetaMask
+      window.ethereum.on("chainChanged", () => {
+        getNetwork();
+      });
+      // Reload network info when account is changed
+      window.ethereum.on("accountsChanged", (accounts) => {
+        if (accounts.length > 0) {
+          setAccount(accounts[0]);
+          localStorage.setItem("account", accounts[0]);
+        } else {
+          setAccount(null);
+          localStorage.removeItem("account");
+        }
+      });
+    }
+
+    // Cleanup function for listeners
+    return () => {
+      if (window.ethereum) {
+        window.ethereum.removeListener("chainChanged", getNetwork);
+        window.ethereum.removeListener("accountsChanged", () => {});
+      }
+    };
+  }, []);
+
+  // Connect MetaMask and set account
+  async function connectWallet() {
+    if (!window.ethereum) {
+      alert("MetaMask not found");
+      return;
+    }
+
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const accounts = await provider.send("eth_requestAccounts", []);
+      setAccount(accounts[0]);
+      localStorage.setItem("account", accounts[0]); // Store account in localStorage
+      getNetwork();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to connect wallet");
+    }
+  }
+
+  // Disconnect MetaMask wallet
+  function disconnectWallet() {
+    setAccount(null);
+    setNetworkInfo(null);
+    localStorage.removeItem("account"); // Clear account from localStorage
+    setStatus("Wallet disconnected.");
+  }
+
+  // Get current network name and chainId from MetaMask
+  async function getNetwork() {
+    if (window.ethereum) {
+      try {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const network = await provider.getNetwork();
+        
+        // Use the network name/chain ID to display what the user is connected to
+        setNetworkInfo({
+          name: network.name,
+          chainId: network.chainId.toString(), // Convert BigInt to string for display
+        });
+        console.log("Connected to network:", network.name, network.chainId);
+      } catch (error) {
+        console.error("Error fetching network:", error);
+        setNetworkInfo({ name: "Unknown/Disconnected", chainId: "---" });
+      }
+    }
+  }
+
+  async function deployAndMint() {
+    try {
+      if (!window.ethereum) {
+        alert("MetaMask not found");
+        return;
+      }
+
+      if (!name || !symbol || !supply) {
+        alert("Please fill in the token name, symbol, and supply");
+        return;
+      }
+
+      if (!account) {
+        alert("Please connect your wallet first.");
+        return;
+      }
+
+      setStatus(`Preparing transaction on ${networkInfo?.name || "current network"}...`);
+
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+
+      // Convert the supply into the smallest unit (18 decimals)
+      const supplyUnits = ethers.parseUnits(supply, 18); // Supply in whole tokens
+
+      const factory = new ethers.ContractFactory(ABI, BYTECODE, signer);
+
+      setStatus("Sending deploy transaction...");
+
+      // Deploy the contract with name, symbol, and supply passed as constructor parameters
+      const contract = await factory.deploy(name, symbol, supplyUnits);
+      await contract.waitForDeployment();
+
+      const addr = await contract.getAddress();
+      setTokenAddress(addr);
+      setStatus(`✅ Deployed successfully on ${networkInfo.name} at ${addr}`);
+
+      console.log("Token deployed at:", addr);
+    } catch (err) {
+      console.error("Deployment Error:", err);
+      const errorMsg = err?.reason || err?.message || "Unknown error occurred during deployment.";
+      setStatus(`❌ Error: ${errorMsg}`);
+    }
+  }
 
   return (
-    <>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-      </div>
-    </>
-  )
-}
+    <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white min-h-screen flex justify-center items-center py-10">
+      <div className="w-full max-w-lg bg-gray-800 p-8 rounded-lg shadow-lg">
+        <h2 className="text-3xl font-bold text-center mb-6">Deploy & Mint Custom ERC20 Token</h2>
 
-export default App
+        {/* Display Current Network Information */}
+        {networkInfo && (
+          <div className="bg-gray-700 p-2 rounded-md mb-6">
+            <strong>Connected Network:</strong> {networkInfo.name} (Chain ID: {networkInfo.chainId})
+          </div>
+        )}
+
+        {/* Wallet Connect/Disconnect Button */}
+        {account ? (
+          <div className="text-center mb-6">
+            <p>Connected: {account.slice(0, 6)}...{account.slice(-4)}</p>
+            <button
+              onClick={disconnectWallet}
+              className="bg-red-500 py-2 px-6 rounded-full mt-4"
+            >
+              Disconnect Wallet
+            </button>
+          </div>
+        ) : (
+          <div className="text-center mb-6">
+            <button
+              onClick={connectWallet}
+              className="bg-blue-500 py-2 px-6 rounded-full"
+            >
+              Connect MetaMask
+            </button>
+          </div>
+        )}
+
+        {/* Token Input Fields */}
+        <div className="space-y-4">
+          <div>
+            <label className="block text-lg">Token Name</label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="bg-gray-700 text-white px-4 py-2 rounded-md w-full"
+              placeholder="My Custom Token"
+            />
+          </div>
+
+          <div>
+            <label className="block text-lg">Token Symbol</label>
+            <input
+              value={symbol}
+              onChange={(e) => setSymbol(e.target.value)}
+              className="bg-gray-700 text-white px-4 py-2 rounded-md w-full"
+              placeholder="MCT"
+            />
+          </div>
+
+          <div>
+            <label className="block text-lg">Initial Supply (whole tokens)</label>
+            <input
+              value={supply}
+              onChange={(e) => setSupply(e.target.value)}
+              className="bg-gray-700 text-white px-4 py-2 rounded-md w-full"
+              type="number"
+              placeholder="1000"
+            />
+          </div>
+
+          <button
+            onClick={deployAndMint}
+            className="bg-purple-600 text-white py-3 px-6 rounded-full w-full mt-4"
+            disabled={!account}
+          >
+            Deploy & Mint on Current Network
+          </button>
+        </div>
+
+        {/* Status Display */}
+        {status && (
+          <p className="mt-4 text-center text-sm">
+            <strong>Status:</strong> {status}
+          </p>
+        )}
+
+        {/* Display Contract Address after Successful Deployment */}
+        {tokenAddress && (
+          <p className="mt-4 text-center">
+            Your token contract address:<br />
+            <code>{tokenAddress}</code>
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
