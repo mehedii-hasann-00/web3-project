@@ -1,8 +1,8 @@
 import React, { useState, useEffect, } from "react";
 import { ethers } from "ethers";
-import tokenArtifact from "../abis/MyToken.json"; // ABI generated from the contract
+import tokenArtifact from "./abis/MyToken.json"; // ABI generated from the contract
 import LiquidityCard from "./components/LiquidityCard";
-
+import { getRouterContract,addLiquidity } from "./utils/uniswap_router";
 
 const ABI = tokenArtifact.abi;
 const BYTECODE = tokenArtifact.bytecode;
@@ -10,6 +10,7 @@ const BYTECODE = tokenArtifact.bytecode;
 export default function DeployToken() {
   const [account, setAccount] = useState(null);
   const [name, setName] = useState("");
+  const [tokenName, setTokenName] = useState(true);
   const [symbol, setSymbol] = useState("");
   const [supply, setSupply] = useState("");
   const [status, setStatus] = useState("");
@@ -17,6 +18,8 @@ export default function DeployToken() {
   const [networkInfo, setNetworkInfo] = useState(null); // Updated state for current network info
   const [txHash, setTxHash] = useState(null);
   const [usdtAddress, setUsdtAddress] = useState(null);
+  const [tokenAmount, settokenAmount] = useState(null);
+  const [ethAmount, setEthAmount] = useState(null);
 
   // Check if user is already connected (on page reload)
   useEffect(() => {
@@ -63,7 +66,9 @@ export default function DeployToken() {
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const accounts = await provider.send("eth_requestAccounts", []);
+      
       setAccount(accounts[0]);
+      
       localStorage.setItem("account", accounts[0]); // Store account in localStorage
       getNetwork();
     } catch (err) {
@@ -133,6 +138,7 @@ export default function DeployToken() {
       await contract.waitForDeployment();
 
       const addr = await contract.getAddress();
+      setTokenName(name);
       setName('');
       setSymbol('');
       setSupply('');
@@ -150,6 +156,9 @@ export default function DeployToken() {
       setStatus(`❌ Error: ${errorMsg}`);
     }
   }
+
+
+
 
   return (
     <div className="bg-gradient-to-tr from-gray-500 via-gray-300 to-gray-800 text-white min-h-screen py-10">
@@ -275,8 +284,11 @@ export default function DeployToken() {
           )}
 
         </div>
-        <LiquidityCard tokenAddress={tokenAddress}
-    usdtAddress={usdtAddress} name={name} symbol={symbol} networkInfo={networkInfo}/>
+        {tokenName && <LiquidityCard tokenAddress={tokenAddress}
+    usdtAddress={usdtAddress} name={tokenName} symbol={symbol}
+     networkInfo={networkInfo} tokenAmount={tokenAmount}
+     ethAmount={ethAmount}
+     />}
       </div>
     </div>
   );
