@@ -1,6 +1,8 @@
 import React, { useState, useEffect, } from "react";
 import { ethers } from "ethers";
 import tokenArtifact from "../abis/MyToken.json"; // ABI generated from the contract
+import LiquidityCard from "./components/LiquidityCard";
+
 
 const ABI = tokenArtifact.abi;
 const BYTECODE = tokenArtifact.bytecode;
@@ -14,6 +16,7 @@ export default function DeployToken() {
   const [tokenAddress, setTokenAddress] = useState(null);
   const [networkInfo, setNetworkInfo] = useState(null); // Updated state for current network info
   const [txHash, setTxHash] = useState(null);
+  const [usdtAddress, setUsdtAddress] = useState(null);
 
   // Check if user is already connected (on page reload)
   useEffect(() => {
@@ -179,7 +182,7 @@ export default function DeployToken() {
           )}
         </div>
       </div>
-      <div className="flex justify-center items-center">
+      <div className="grid grid-cols-1 gap-8 justify-items-center px-6">
         <div className="w-full max-w-lg bg-gray-800 p-8 rounded-lg shadow-lg">
           <h2 className="text-3xl font-bold text-center mb-6">Deploy & Mint ERC20 Token</h2>
 
@@ -272,6 +275,8 @@ export default function DeployToken() {
           )}
 
         </div>
+        <LiquidityCard tokenAddress={tokenAddress}
+    usdtAddress={usdtAddress} name={name} symbol={symbol} networkInfo={networkInfo}/>
       </div>
     </div>
   );
