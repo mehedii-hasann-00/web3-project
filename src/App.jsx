@@ -76,21 +76,25 @@ export default function DeployToken() {
     }
   }
   const GAS_LIMIT_ESTIMATE = 300000n;
+
   const estimateGas = async () => {
     if (!window.ethereum) return null;
 
     const provider = new ethers.BrowserProvider(window.ethereum);
 
-    // Call raw RPC method
+    // Call raw RPC method to get the current gas price
     const gasPriceHex = await provider.send("eth_gasPrice", []); // e.g. "0x3b9aca00"
-    const gasPrice = BigInt(gasPriceHex); // convert hex string → BigInt wei
+    const gasPrice = BigInt(gasPriceHex); // Convert hex string → BigInt in wei
 
     const estimatedWei = gasPrice * GAS_LIMIT_ESTIMATE;
 
-    const estimatedEth = ethers.formatEther(estimatedWei);
+    // Use formatUnits to convert wei to ETH and keep a readable format with 18 decimals
+    const estimatedEth = ethers.formatUnits(estimatedWei, 18);
 
-    setGas(parseFloat(estimatedEth.substring(0, estimatedEth.indexOf(".") + 8)));
+    // Convert the result to a more readable format with up to 8 decimal places
+    setGas(parseFloat(estimatedEth).toFixed(8)); // Limiting to 8 decimals for display
   };
+
 
   // Connect MetaMask and set account
   async function connectWallet() {
@@ -322,7 +326,7 @@ export default function DeployToken() {
 
         </div>
         {(networkInfo || txHash) && <LiquidityCard
-          networkInfo={networkInfo} connectWallet={connectWallet} gas={gas} ethBalance={ethBalance} tokenInfo={tokenInfo} />}
+          setTokenInfo={setTokenInfo} networkInfo={networkInfo} connectWallet={connectWallet} gas={gas} ethBalance={ethBalance} tokenInfo={tokenInfo} />}
       </div>
     </div>
   );

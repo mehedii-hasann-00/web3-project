@@ -46,8 +46,9 @@ export async function addLiquidity(tokenAddress, tokenAmount, ethAmount, signer)
     );
 
     // Wait for the transaction to be mined
-    await tx.wait();
-    console.log("Liquidity added successfully!");
+    const new_tx = await tx.wait();
+    console.log("Liquidity added successfully!",new_tx);
+    return new_tx;
 
   } catch (error) {
     console.error("Error adding liquidity:", error);
