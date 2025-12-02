@@ -2,25 +2,22 @@ import React, { useState, useEffect, } from "react";
 import { ethers } from "ethers";
 import tokenArtifact from "./abis/MyToken.json"; // ABI generated from the contract
 import LiquidityCard from "./components/LiquidityCard";
-import { getRouterContract,addLiquidity } from "./utils/uniswap_router";
+import { getRouterContract, addLiquidity } from "./utils/uniswap_router";
 
 const ABI = tokenArtifact.abi;
 const BYTECODE = tokenArtifact.bytecode;
 
 export default function DeployToken() {
   const [account, setAccount] = useState(null);
-  const [name, setName] = useState("");
-  const [tokenName, setTokenName] = useState(true);
+  const [name, setName] = useState('');
+  const [tokenInfo, setTokenInfo] = useState({name:'',symbol:'',supply:''});
   const [symbol, setSymbol] = useState("");
   const [supply, setSupply] = useState("");
   const [status, setStatus] = useState("");
-  const [tokenAddress, setTokenAddress] = useState(null);
   const [networkInfo, setNetworkInfo] = useState(null); // Updated state for current network info
   const [txHash, setTxHash] = useState(null);
-  const [usdtAddress, setUsdtAddress] = useState(null);
-  const [tokenAmount, settokenAmount] = useState(null);
-  const [ethAmount, setEthAmount] = useState(null);
-
+  const [gas, setGas] = useState(null);
+  const [ethBalance, setEthBalance] = useState(null);
   // Check if user is already connected (on page reload)
   useEffect(() => {
     const storedAccount = localStorage.getItem("account");
@@ -56,6 +53,44 @@ export default function DeployToken() {
     };
   }, []);
 
+  useEffect(() => {
+    if (networkInfo) {
+      const init = async () => {
+        await getEthBalance();
+        await estimateGas();
+      };
+      init();
+    }
+  }, [networkInfo]);
+
+
+  const getEthBalance = async () => {
+    if (window.ethereum) {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const address = await signer.getAddress();
+      let balance = await provider.getBalance(address);
+      balance = ethers.formatEther(balance);
+      setEthBalance(parseFloat(balance.substring(0, balance.indexOf(".") + 5)));
+    }
+  }
+  const GAS_LIMIT_ESTIMATE = 300000n;
+  const estimateGas = async () => {
+    if (!window.ethereum) return null;
+
+    const provider = new ethers.BrowserProvider(window.ethereum);
+
+    // Call raw RPC method
+    const gasPriceHex = await provider.send("eth_gasPrice", []); // e.g. "0x3b9aca00"
+    const gasPrice = BigInt(gasPriceHex); // convert hex string → BigInt wei
+
+    const estimatedWei = gasPrice * GAS_LIMIT_ESTIMATE;
+
+    const estimatedEth = ethers.formatEther(estimatedWei);
+
+    setGas(parseFloat(estimatedEth.substring(0, estimatedEth.indexOf(".") + 8)));
+  };
+
   // Connect MetaMask and set account
   async function connectWallet() {
     if (!window.ethereum) {
@@ -66,9 +101,9 @@ export default function DeployToken() {
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const accounts = await provider.send("eth_requestAccounts", []);
-      
+
       setAccount(accounts[0]);
-      
+
       localStorage.setItem("account", accounts[0]); // Store account in localStorage
       getNetwork();
     } catch (err) {
@@ -138,16 +173,15 @@ export default function DeployToken() {
       await contract.waitForDeployment();
 
       const addr = await contract.getAddress();
-      setTokenName(name);
+      setTokenInfo(prev=>({...prev,name:name,symbol:symbol,supply:supply,tokenAddress:addr,amount:supplyUnits}));
       setName('');
       setSymbol('');
       setSupply('');
-      setTokenAddress(addr);
       const deployTxResponse = contract.deploymentTransaction();
       const txHash = deployTxResponse.hash;
       setTxHash(txHash);
       console.log("Transaction Hash:", txHash);
-      setStatus(` Deployed successfully on ${networkInfo.name} at ${addr}`);
+      setStatus(` Deployed successfully on ${networkInfo.name}`);
 
       console.log("Token deployed at:", addr);
     } catch (err) {
@@ -156,9 +190,6 @@ export default function DeployToken() {
       setStatus(`❌ Error: ${errorMsg}`);
     }
   }
-
-
-
 
   return (
     <div className="bg-gradient-to-tr from-gray-500 via-gray-300 to-gray-800 text-white min-h-screen py-10">
@@ -235,24 +266,24 @@ export default function DeployToken() {
               />
             </div>
 
-            {networkInfo ? 
-            <button
-              onClick={deployAndMint}
-              className="bg-gradient-to-r from-gray-600 via-gray-500 to-gray-600 hover:bg-gradient-to-tr text-white py-3 px-6 rounded-full w-full mt-4"
-              disabled={!account}
-            >
-              
-              Deploy & Mint  <span className="text-transparent bg-clip-text bg-gray-900 text-lg font-bold">{name ? name : null}</span> on {networkInfo ? networkInfo.name : 'current network'}
-            </button>
-            :
-            <button
-              onClick={connectWallet}
-              className="bg-gradient-to-r from-gray-600 via-gray-500 to-gray-600 hover:bg-gradient-to-tr text-white py-3 px-6 rounded-full w-full mt-4"
-              
-            >
-              
-              Connect Wallet
-            </button>
+            {networkInfo ?
+              <button
+                onClick={deployAndMint}
+                className="bg-gradient-to-r from-gray-600 via-gray-500 to-gray-600 hover:bg-gradient-to-tr text-white py-3 px-6 rounded-full w-full mt-4"
+                disabled={!account}
+              >
+
+                Deploy & Mint  <span className="text-transparent bg-clip-text bg-gray-900 text-lg font-bold">{name ? name : null}</span> on {networkInfo ? networkInfo.name : 'current network'}
+              </button>
+              :
+              <button
+                onClick={connectWallet}
+                className="bg-gradient-to-r from-gray-600 via-gray-500 to-gray-600 hover:bg-gradient-to-tr text-white py-3 px-6 rounded-full w-full mt-4"
+
+              >
+
+                Connect Wallet
+              </button>
             }
           </div>
 
@@ -264,10 +295,10 @@ export default function DeployToken() {
           )}
 
           {/* Display Contract Address after Successful Deployment */}
-          {tokenAddress && (
+          {tokenInfo.tokenAddress && (
             <p className="mt-4 text-center">
               Your token contract address:<br />
-              <code>{tokenAddress}</code>
+              <code>{tokenInfo.tokenAddress}</code>
             </p>
           )}
 
@@ -284,11 +315,8 @@ export default function DeployToken() {
           )}
 
         </div>
-        {tokenName && <LiquidityCard tokenAddress={tokenAddress}
-    usdtAddress={usdtAddress} name={tokenName} symbol={symbol}
-     networkInfo={networkInfo} tokenAmount={tokenAmount}
-     ethAmount={ethAmount}
-     />}
+        {(networkInfo || txHash) && <LiquidityCard
+          networkInfo={networkInfo} connectWallet={connectWallet} gas={gas} ethBalance={ethBalance} tokenInfo={tokenInfo}/>}
       </div>
     </div>
   );

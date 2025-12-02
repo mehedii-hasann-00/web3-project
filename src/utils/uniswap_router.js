@@ -39,7 +39,7 @@ export async function addLiquidity(tokenAddress, tokenAmount, ethAmount, signer)
       0,                      // Minimum amount of token to add (slippage tolerance)
       0,                      // Minimum amount of ETH to add (slippage tolerance)
       await signer.getAddress(), // Address that will receive the liquidity
-      Math.floor(Date.now() / 1000) + 60 * 20, // Deadline (20 minutes from now)
+      Math.floor(Date.now() / 1000) + 60 * 5, // Deadline (20 minutes from now)
       {
         value: ethAmount,     // The amount of ETH to be added to the pool
       }
