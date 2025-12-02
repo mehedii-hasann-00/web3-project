@@ -10,7 +10,7 @@ const BYTECODE = tokenArtifact.bytecode;
 export default function DeployToken() {
   const [account, setAccount] = useState(null);
   const [name, setName] = useState('');
-  const [tokenInfo, setTokenInfo] = useState({name:'',symbol:'',supply:''});
+  const [tokenInfo, setTokenInfo] = useState({ name: '', symbol: '', supply: '' });
   const [symbol, setSymbol] = useState("");
   const [supply, setSupply] = useState("");
   const [status, setStatus] = useState("");
@@ -18,6 +18,7 @@ export default function DeployToken() {
   const [txHash, setTxHash] = useState(null);
   const [gas, setGas] = useState(null);
   const [ethBalance, setEthBalance] = useState(null);
+  const [isDeploying, setIsDeploying] = useState(false);
   // Check if user is already connected (on page reload)
   useEffect(() => {
     const storedAccount = localStorage.getItem("account");
@@ -155,9 +156,10 @@ export default function DeployToken() {
         alert("Please connect your wallet first.");
         return;
       }
-
+      setIsDeploying(true);
       setStatus(`Preparing transaction on ${networkInfo?.name || "current network"}...`);
-
+      setTokenInfo({});
+      setTxHash('');
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
 
@@ -173,17 +175,19 @@ export default function DeployToken() {
       await contract.waitForDeployment();
 
       const addr = await contract.getAddress();
-      setTokenInfo(prev=>({...prev,name:name,symbol:symbol,supply:supply,tokenAddress:addr,amount:supplyUnits}));
+      setTokenInfo(prev => ({
+        ...prev, name: name, symbol: symbol,
+        supply: parseInt(supply),
+        tokenAddress: addr, amount: parseInt(supply), abi: ABI
+      }));
       setName('');
       setSymbol('');
       setSupply('');
       const deployTxResponse = contract.deploymentTransaction();
       const txHash = deployTxResponse.hash;
       setTxHash(txHash);
-      console.log("Transaction Hash:", txHash);
+      setIsDeploying(false);
       setStatus(` Deployed successfully on ${networkInfo.name}`);
-
-      console.log("Token deployed at:", addr);
     } catch (err) {
       console.error("Deployment Error:", err);
       const errorMsg = err?.reason || err?.message || "Unknown error occurred during deployment.";
@@ -290,6 +294,8 @@ export default function DeployToken() {
           {/* Status Display */}
           {status && (
             <p className="mt-4 text-center text-sm">
+              {isDeploying ? <i className="fa fa-solid fa-spinner fa-spin"></i>
+                : null}
               <strong>Status:</strong> {status}
             </p>
           )}
@@ -316,7 +322,7 @@ export default function DeployToken() {
 
         </div>
         {(networkInfo || txHash) && <LiquidityCard
-          networkInfo={networkInfo} connectWallet={connectWallet} gas={gas} ethBalance={ethBalance} tokenInfo={tokenInfo}/>}
+          networkInfo={networkInfo} connectWallet={connectWallet} gas={gas} ethBalance={ethBalance} tokenInfo={tokenInfo} />}
       </div>
     </div>
   );

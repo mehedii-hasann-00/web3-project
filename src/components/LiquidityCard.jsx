@@ -1,13 +1,24 @@
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
+import { addLiquidity } from '../utils/uniswap_router';
 
-
-export default function LiquidityCard({tokenInfo,gas,ethBalance, networkInfo,connectWallet }) {
+export default function LiquidityCard({ tokenInfo, gas, ethBalance, networkInfo, connectWallet }) {
     const [tokenAmount, setTokenAmount] = useState('');
     const [ethAmount, setEthAmount] = useState('');
+    const [isApproved, setIsApproved] = useState(false);
+    const [isApproving, setIsApproving] = useState(false);
 
     const handleAddLiquidity = async () => {
         try {
+            if (ethAmount >= ethBalance) {
+                alert("Enter lower amount")
+                return;
+            }
+            if (tokenAmount >= tokenInfo.amount) {
+                alert("Enter lower amount")
+                return;
+            }
+
             if (window.ethereum) {
                 const provider = new ethers.BrowserProvider(window.ethereum);
                 const signer = await provider.getSigner();
@@ -19,7 +30,28 @@ export default function LiquidityCard({tokenInfo,gas,ethBalance, networkInfo,con
             alert("Error in adding liquidity", error);
         }
     };
-    console.log(gas);
+    async function approveToken() {
+        setIsApproving(true);
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+
+        const token = new ethers.Contract(tokenInfo.tokenAddress, tokenInfo.abi, signer);
+
+        const tokenDecimals = 18;
+        const amountInWei = ethers.parseUnits(tokenInfo.amount.toString(), tokenDecimals);
+
+        // Approve the router to spend the token
+        const tx = await token.approve(
+            "0xeE567Fe1712Faf6149d80dA1E6934E354124CfE3", // Router address (Sepolia)
+            amountInWei
+        );
+
+        await tx.wait();
+        setIsApproving(false);
+        setIsApproved(true);
+    }
+
+    // console.log(ethers.parseUnits((10).toString(), 18));
     return (
         <div className="w-full max-w-lg bg-gray-800 p-8 rounded-lg shadow-lg text-white">
             <h2 className="text-3xl font-bold text-center mb-6">
@@ -115,20 +147,32 @@ export default function LiquidityCard({tokenInfo,gas,ethBalance, networkInfo,con
 
             {/* Enable + Add buttons */}
             <div className="flex flex-col gap-3 mt-4">
-                {networkInfo ? 
-                                (ethBalance<=gas ?
-                <p className="text-center text-white w-full py-3 rounded-full bg-gray-700 bg-gradient-to-r from-gray-600 via-gray-500 to-gray-600 hover:bg-gradient-to-tr font-semibold text-md">
-                    Not enough ETH available to cover gas fee
-                </p>
-                :
-                <button onClick={handleAddLiquidity} className="text-white w-full py-3 rounded-full bg-gray-700 bg-gradient-to-r from-gray-600 via-gray-500 to-gray-600 hover:bg-gradient-to-tr font-semibold text-sm">
-                    Add Liquidity
-                </button>
-                                )
-                :
-                <button onClick={connectWallet} className="text-white w-full py-3 rounded-full bg-gray-700 bg-gradient-to-r from-gray-600 via-gray-500 to-gray-600 hover:bg-gradient-to-tr font-semibold text-sm">
-                    Connect Wallet
-                </button>
+                {networkInfo ?
+                    (ethBalance <= gas ?
+                        <p className="text-center text-white w-full py-3 rounded-full bg-gray-700 bg-gradient-to-r from-gray-600 via-gray-500 to-gray-600 hover:bg-gradient-to-tr font-semibold text-md">
+                            Not enough ETH available to cover gas fee
+                        </p>
+                        :
+                        <>
+                            {!isApproved ? <button onClick={approveToken} className="text-white w-full py-3 rounded-full bg-gray-700 bg-gradient-to-r from-gray-600 via-gray-500 to-gray-600 hover:bg-gradient-to-tr font-semibold text-sm">
+                                {isApproving ? <i className="fa fa-solid fa-spinner fa-spin"></i>
+                                    : null}
+                                Approve {tokenInfo.name ? tokenInfo.name : 'token'}
+                            </button>
+                                :
+                                <button className="text-white w-full py-3 rounded-full bg-gray-700 bg-gradient-to-r from-gray-600 via-gray-500 to-gray-600 hover:bg-gradient-to-tr font-semibold text-sm">
+                                    Approved {tokenInfo.name ? tokenInfo.name : null} <i class="fa fa-solid fa-check"></i>
+                                </button>
+                            }
+                            <button onClick={handleAddLiquidity} className="text-white w-full py-3 rounded-full bg-gray-700 bg-gradient-to-r from-gray-600 via-gray-500 to-gray-600 hover:bg-gradient-to-tr font-semibold text-sm">
+                                Add Liquidity
+                            </button>
+                        </>
+                    )
+                    :
+                    <button onClick={connectWallet} className="text-white w-full py-3 rounded-full bg-gray-700 bg-gradient-to-r from-gray-600 via-gray-500 to-gray-600 hover:bg-gradient-to-tr font-semibold text-sm">
+                        Connect Wallet
+                    </button>
                 }
 
             </div>
