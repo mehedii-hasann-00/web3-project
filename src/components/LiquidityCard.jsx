@@ -91,9 +91,9 @@ export default function LiquidityCard({ setTokenInfo, tokenInfo, gas, ethBalance
 
             <div className="bg-gray-700 p-3 rounded-md text-sm mb-4">
                 <p><strong>Token:</strong> {!tokenInfo.name ? "Not deployed yet" : tokenInfo.name}</p>
-                <p><strong>ETH Balance:</strong> {ethBalance ? ethBalance : ethBalance}</p>
+                <p><strong>{networkInfo ? networkInfo.name : "Coin"} Balance:</strong> {ethBalance ? ethBalance : ethBalance}</p>
                 <p><strong>{tokenInfo.name ? tokenInfo.name : 'Token'} Balance:</strong> {tokenInfo.amount ? tokenInfo.amount : 'Not Available'}</p>
-                <p>estimated gas : {gas ? gas : null} ETH</p>
+                <p>estimated gas : {gas ? gas : null} {networkInfo ? networkInfo.name : ""}</p>
             </div>
 
             {/* Token 1 box */}
@@ -101,16 +101,16 @@ export default function LiquidityCard({ setTokenInfo, tokenInfo, gas, ethBalance
                 <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-full bg-gray-600 flex items-center justify-center text-xs font-bold p-6">
-                            ETH
+                            {networkInfo ? networkInfo.name : "Coin"}
                         </div>
                         <div className="flex flex-col">
-                            <span className="font-semibold text-sm">ETH</span>
+                            <span className="font-semibold text-sm">{networkInfo ? networkInfo.name : "Coin"}</span>
                             <span className="text-[11px] text-gray-400">{networkInfo ? networkInfo.name : "Not available"}</span>
                         </div>
                     </div>
                     <div className="text-right">
                         <div className="text-sm font-semibold">
-                            <input value={ethAmount} onChange={(e) => setEthAmount(e.target.value)} type="number" placeholder="Enter ETH amount" className="p-2 bg-gray-900 rounded-md" />
+                            <input value={ethAmount} onChange={(e) => setEthAmount(e.target.value)} type="number" placeholder={`Enter ${networkInfo.name} amount`} className="p-2 bg-gray-900 rounded-md" />
                         </div>
                         <div className="text-[11px] text-gray-400">~0.0 USD</div>
                     </div>
@@ -143,7 +143,7 @@ export default function LiquidityCard({ setTokenInfo, tokenInfo, gas, ethBalance
                     </div>
                     <div className="text-right">
                         <div className="text-sm font-semibold">
-                            <input value={tokenAmount} onChange={e => setTokenAmount(e.target.value)} type="number" placeholder="Enter Token amount" className="p-2 bg-gray-900 rounded-md" />
+                            <input value={tokenAmount} onChange={e => setTokenAmount(e.target.value)} type="number" placeholder={`Enter ${tokenInfo.name} amount`} className="p-2 bg-gray-900 rounded-md" />
                         </div>
                         <div className="text-[11px] text-gray-400">~0.0 USD</div>
                     </div>
