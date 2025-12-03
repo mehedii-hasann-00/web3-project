@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
-import { addLiquidity } from '../utils/uniswap_router';
+import { addLiquidity, uniswap_v2_router2_contract_address } from '../utils/uniswap_router';
 
 export default function LiquidityCard({ setTokenInfo, tokenInfo, gas, ethBalance, networkInfo, connectWallet }) {
     const [tokenAmount, setTokenAmount] = useState('');
@@ -10,6 +10,10 @@ export default function LiquidityCard({ setTokenInfo, tokenInfo, gas, ethBalance
     const [isLoading, setIsLoading] = useState(false);
     const [isLiqAdded, setIsLiqAdded] = useState(false);
     const [liqHash, setLiqHash] = useState(false);
+
+
+    console.log(uniswap_v2_router2_contract_address[networkInfo.chainId])
+    console.log(networkInfo.chainId)
 
     const handleAddLiquidity = async () => {
         try {
@@ -32,7 +36,7 @@ export default function LiquidityCard({ setTokenInfo, tokenInfo, gas, ethBalance
             setIsLoading(true);
             const provider = new ethers.BrowserProvider(window.ethereum);
             const signer = await provider.getSigner();
-            const res = await addLiquidity(tokenInfo.tokenAddress, ethers.parseUnits(String(tokenAmount), 18), ethers.parseEther(String(ethAmount)), signer);
+            const res = await addLiquidity(tokenInfo.tokenAddress, ethers.parseUnits(String(tokenAmount), 18), ethers.parseEther(String(ethAmount)), signer, uniswap_v2_router2_contract_address[networkInfo.chainId]);
             setLiqHash(res.hash);
             setIsLoading(false);
             setTokenInfo(prev => ({ ...prev, amount: tokenInfo.amount - tokenAmount }));
@@ -56,9 +60,9 @@ export default function LiquidityCard({ setTokenInfo, tokenInfo, gas, ethBalance
         const tokenDecimals = 18;
         const amountInWei = ethers.parseUnits(tokenInfo.amount.toString(), tokenDecimals);
 
-        // Approve the router to spend the token
+        // Approve the Uniswap router to spend the tokens on behalf of the user
         const tx = await token.approve(
-            "0xeE567Fe1712Faf6149d80dA1E6934E354124CfE3", // Router address (Sepolia)
+            uniswap_v2_router2_contract_address[networkInfo.chainId],
             amountInWei
         );
 
@@ -89,6 +93,47 @@ export default function LiquidityCard({ setTokenInfo, tokenInfo, gas, ethBalance
                 Create Liquidity Pool
             </h2>
 
+            <div class="mb-4 bg-white dark:bg-gray-800 p-5 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700">
+                <p class="text-lg font-bold text-gray-900 dark:text-white mb-4">
+                    Supported Networks:
+                </p>
+
+                <div class="flex flex-wrap gap-2">
+                    <span class="px-3 py-1 bg-blue-500 text-white text-xs font-medium rounded-full hover:bg-blue-600 transition duration-150 cursor-default shadow-sm">
+                        Sepolia
+                    </span>
+                    <span class="px-3 py-1 bg-green-500 text-white text-xs font-medium rounded-full hover:bg-green-600 transition duration-150 cursor-default shadow-sm">
+                        Unichain
+                    </span>
+                    <span class="px-3 py-1 bg-sky-500 text-white text-xs font-medium rounded-full hover:bg-sky-600 transition duration-150 cursor-default shadow-sm">
+                        Arbitrum
+                    </span>
+                    <span class="px-3 py-1 bg-red-500 text-white text-xs font-medium rounded-full hover:bg-red-600 transition duration-150 cursor-default shadow-sm">
+                        Avalanche
+                    </span>
+                    <span class="px-3 py-1 bg-yellow-500 text-gray-900 text-xs font-medium rounded-full hover:bg-yellow-600 transition duration-150 cursor-default shadow-sm">
+                        BNB Chain
+                    </span>
+                    <span class="px-3 py-1 bg-indigo-500 text-white text-xs font-medium rounded-full hover:bg-indigo-600 transition duration-150 cursor-default shadow-sm">
+                        Base
+                    </span>
+                    <span class="px-3 py-1 bg-pink-500 text-white text-xs font-medium rounded-full hover:bg-pink-600 transition duration-150 cursor-default shadow-sm">
+                        Optimism
+                    </span>
+                    <span class="px-3 py-1 bg-purple-500 text-white text-xs font-medium rounded-full hover:bg-purple-600 transition duration-150 cursor-default shadow-sm">
+                        Polygon
+                    </span>
+                    <span class="px-3 py-1 bg-orange-500 text-white text-xs font-medium rounded-full hover:bg-orange-600 transition duration-150 cursor-default shadow-sm">
+                        Blast
+                    </span>
+                    <span class="px-3 py-1 bg-lime-500 text-gray-900 text-xs font-medium rounded-full hover:bg-lime-600 transition duration-150 cursor-default shadow-sm">
+                        Zora
+                    </span>
+                    <span class="px-3 py-1 bg-teal-500 text-white text-xs font-medium rounded-full hover:bg-teal-600 transition duration-150 cursor-default shadow-sm">
+                        Monad
+                    </span>
+                </div>
+            </div>
             <div className="bg-gray-700 p-3 rounded-md text-sm mb-4">
                 <p><strong>Token:</strong> {!tokenInfo.name ? "Not deployed yet" : tokenInfo.name}</p>
                 <p><strong>{networkInfo ? networkInfo.name : "Coin"} Balance:</strong> {ethBalance ? ethBalance : ethBalance}</p>
@@ -186,7 +231,7 @@ export default function LiquidityCard({ setTokenInfo, tokenInfo, gas, ethBalance
                         </p>
                         :
                         <>
-                            {!isApproved ? <button onClick={approveToken} className="text-white w-full py-3 rounded-full bg-gray-700 bg-gradient-to-r from-gray-600 via-gray-500 to-gray-600 hover:bg-gradient-to-tr font-semibold text-sm">
+                            {!isApproved ? <button disabled={isApproving ? true : false} onClick={approveToken} className="disabled:cursor-not-allowed disabled:opacity-50 text-white w-full py-3 rounded-full bg-gray-700 bg-gradient-to-r from-gray-600 via-gray-500 to-gray-600 hover:bg-gradient-to-tr font-semibold text-sm">
                                 {isApproving ? <i className="fa fa-solid fa-spinner fa-spin"></i>
                                     : <>Approve {tokenInfo.name ? tokenInfo.name : 'token'}</>}
                             </button>
@@ -196,7 +241,7 @@ export default function LiquidityCard({ setTokenInfo, tokenInfo, gas, ethBalance
                                 </button>
                             }
 
-                            {!isLiqAdded ? <button onClick={handleAddLiquidity} className="text-white w-full py-3 rounded-full bg-gray-700 bg-gradient-to-r from-gray-600 via-gray-500 to-gray-600 hover:bg-gradient-to-tr font-semibold text-sm">
+                            {!isLiqAdded ? <button disabled={isLoading ? true : false} onClick={handleAddLiquidity} className="disabled:cursor-not-allowed disabled:opacity-50 text-white w-full py-3 rounded-full bg-gray-700 bg-gradient-to-r from-gray-600 via-gray-500 to-gray-600 hover:bg-gradient-to-tr font-semibold text-sm">
                                 {isLoading ? <i className="fa fa-solid fa-spinner fa-spin"></i>
                                     : <>Add Liquidity</>}
                             </button>

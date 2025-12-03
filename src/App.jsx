@@ -19,6 +19,8 @@ export default function DeployToken() {
   const [gas, setGas] = useState(null);
   const [ethBalance, setEthBalance] = useState(null);
   const [isDeploying, setIsDeploying] = useState(false);
+
+  // console.log(networkInfo);
   // Check if user is already connected (on page reload)
   useEffect(() => {
     const storedAccount = localStorage.getItem("account");
@@ -130,13 +132,13 @@ export default function DeployToken() {
       try {
         const provider = new ethers.BrowserProvider(window.ethereum);
         const network = await provider.getNetwork();
-
+        // console.log('network :',network);
         // Use the network name/chain ID to display what the user is connected to
         setNetworkInfo({
           name: network.name,
           chainId: network.chainId.toString(), // Convert BigInt to string for display
         });
-        console.log("Connected to network:", network.name, network.chainId);
+        console.log("Connected to network:", network.name, network.chainId.toString());
       } catch (error) {
         console.error("Error fetching network:", error);
         setNetworkInfo({ name: "Unknown/Disconnected", chainId: "---" });
@@ -230,6 +232,43 @@ export default function DeployToken() {
           )}
         </div>
       </div>
+      <section class="py-10 text-center">
+        <div class="max-w-4xl mx-auto px-4">
+
+          <h1 class="text-6xl font-extrabold tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-300 to-white">
+            The Future of Decentralized Swaps
+          </h1>
+
+          <p class="text-xl sm:text-2xl text-gray-800 mb-10 max-w-2xl mx-auto">
+            Experience lightning-fast transactions and unparalleled yields across all major chains. Start earning today.
+          </p>
+
+          <div class="inline-flex items-center space-x-2 sm:space-x-4 mb-8 p-3 bg-white/10 backdrop-blur-sm rounded-full border border-gray-600/50 shadow-xl">
+
+            <span class="px-4 py-1 bg-gray-600 text-white font-semibold rounded-full text-xs sm:text-sm shadow-md">
+              Mint Token
+            </span>
+
+            <svg class="h-4 w-4 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+
+            <span class="px-4 py-1 bg-gray-600 text-white font-semibold rounded-full text-xs sm:text-sm shadow-md">
+              Add Liquidity
+            </span>
+
+            <svg class="h-4 w-4 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+
+            <span class="px-4 py-1 bg-gray-600 text-white font-semibold rounded-full text-xs sm:text-sm shadow-md">
+              Trade
+            </span>
+
+          </div>
+
+        </div>
+      </section>
       <div className="grid grid-cols-1 gap-8 justify-items-center px-6">
         <div className="w-full max-w-lg bg-gray-800 p-8 rounded-lg shadow-lg">
           <h2 className="text-3xl font-bold text-center mb-6">Deploy & Mint ERC20 Token</h2>
