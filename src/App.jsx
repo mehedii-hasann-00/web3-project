@@ -2,7 +2,8 @@ import React, { useState, useEffect, } from "react";
 import { ethers } from "ethers";
 import tokenArtifact from "./abis/MyToken.json"; // ABI generated from the contract
 import LiquidityCard from "./components/LiquidityCard";
-import { getRouterContract, addLiquidity } from "./utils/uniswap_router";
+import Swap from "./components/SwapCard";
+
 
 const ABI = tokenArtifact.abi;
 const BYTECODE = tokenArtifact.bytecode;
@@ -366,6 +367,8 @@ export default function DeployToken() {
         </div>
         {(networkInfo || txHash) && <LiquidityCard
           setTokenInfo={setTokenInfo} networkInfo={networkInfo} connectWallet={connectWallet} gas={gas} ethBalance={ethBalance} tokenInfo={tokenInfo} />}
+
+          <Swap/>
       </div>
     </div>
   );
