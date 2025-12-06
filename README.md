@@ -5,7 +5,7 @@ In this project, user can
 - create liquidity pool 
 - swap token
 
-Currently live [Here](https://crypto-explorer-fomo.netlify.app/)
+Currently live [Here](https://protodex.netlify.app/)
 
 ## tech stack
 - React

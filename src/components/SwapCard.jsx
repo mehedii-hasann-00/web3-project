@@ -5,9 +5,9 @@ const SwapCard = () => {
 
   return (
     <div className="w-full max-w-lg bg-gray-800 p-8 rounded-lg shadow-lg text-white">
-      <div className="flex justify-center items-center mb-6">
-        <button className="text-lg font-semibold">Swap</button>
-      </div>
+            <h2 className="text-3xl font-bold text-center mb-6">
+                SWAP
+            </h2>
 
       <div className="space-y-1 mb-6 relative">
         <div className='rounded-2xl bg-gray-900/70 border border-gray-700 p-6'>

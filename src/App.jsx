@@ -289,7 +289,7 @@ export default function DeployToken() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="bg-gray-700 text-white px-4 py-2 rounded-md w-full"
-                placeholder="My Custom Token"
+                placeholder="Arbitrum"
               />
             </div>
 
@@ -299,12 +299,12 @@ export default function DeployToken() {
                 value={symbol}
                 onChange={(e) => setSymbol(e.target.value)}
                 className="bg-gray-700 text-white px-4 py-2 rounded-md w-full"
-                placeholder="MCT"
+                placeholder="ARB"
               />
             </div>
 
             <div>
-              <label className="block text-lg">Initial Supply (whole tokens)</label>
+              <label className="block text-lg">Initial Supply</label>
               <input
                 value={supply}
                 onChange={(e) => setSupply(e.target.value)}
