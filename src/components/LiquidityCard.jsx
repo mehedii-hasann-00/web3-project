@@ -17,6 +17,9 @@ export default function LiquidityCard({ setTokenInfo, tokenInfo, gas, ethBalance
 
     const handleAddLiquidity = async () => {
         try {
+            if (!isApproved) {
+                alert(`Please approve ${tokenInfo.name} first.`)
+            }
             if (!tokenInfo.amount) {
                 alert('Mint token to add liquidity');
                 return;
@@ -42,33 +45,40 @@ export default function LiquidityCard({ setTokenInfo, tokenInfo, gas, ethBalance
             setTokenInfo(prev => ({ ...prev, amount: tokenInfo.amount - tokenAmount }));
             setIsLiqAdded(true);
         } catch (error) {
+            setIsLoading(false);
             console.log(error);
             alert("Error in adding liquidity", error);
         }
     };
     async function approveToken() {
-        if (!tokenInfo.tokenAddress) {
-            alert("Mint token to approve")
-            return;
+        try {
+            if (!tokenInfo.tokenAddress) {
+                alert("Mint token to approve")
+                return;
+            }
+            setIsApproving(true);
+            const provider = new ethers.BrowserProvider(window.ethereum);
+            const signer = await provider.getSigner();
+
+            const token = new ethers.Contract(tokenInfo.tokenAddress, tokenInfo.abi, signer);
+
+            const tokenDecimals = 18;
+            const amountInWei = ethers.parseUnits(tokenInfo.amount.toString(), tokenDecimals);
+
+            // Approve the Uniswap router to spend the tokens on behalf of the user
+            const tx = await token.approve(
+                uniswap_v2_router2_contract_address[networkInfo.chainId],
+                amountInWei
+            );
+
+            await tx.wait();
+            setIsApproving(false);
+            setIsApproved(true);
+
+        } catch (error) {
+            setIsApproving(false);
         }
-        setIsApproving(true);
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const signer = await provider.getSigner();
 
-        const token = new ethers.Contract(tokenInfo.tokenAddress, tokenInfo.abi, signer);
-
-        const tokenDecimals = 18;
-        const amountInWei = ethers.parseUnits(tokenInfo.amount.toString(), tokenDecimals);
-
-        // Approve the Uniswap router to spend the tokens on behalf of the user
-        const tx = await token.approve(
-            uniswap_v2_router2_contract_address[networkInfo.chainId],
-            amountInWei
-        );
-
-        await tx.wait();
-        setIsApproving(false);
-        setIsApproved(true);
     }
 
     const handle_eth_amount = (percent) => {

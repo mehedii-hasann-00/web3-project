@@ -149,6 +149,9 @@ export default function DeployToken() {
 
   async function deployAndMint() {
     try {
+      if (isDeploying) {
+        return;
+      }
       if (!window.ethereum) {
         alert("MetaMask not found");
         return;
@@ -196,6 +199,7 @@ export default function DeployToken() {
       setIsDeploying(false);
       setStatus(` Deployed successfully on ${networkInfo.name}`);
     } catch (err) {
+      setIsDeploying(false);
       console.error("Deployment Error:", err);
       const errorMsg = err?.reason || err?.message || "Unknown error occurred during deployment.";
       setStatus(`❌ Error: ${errorMsg}`);
