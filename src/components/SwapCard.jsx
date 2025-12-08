@@ -94,7 +94,7 @@ const SwapCard = ({ setTokenInfo, tokenInfo, gas, ethBalance, networkInfo, conne
       );
       const receipt = await tx.wait();
       if (receipt && receipt.status === 1) {
-        setIsSwapped({status:true,gone_amount:sellAmount,received_amount:buyAmount});
+        setIsSwapped({ status: true, gone_amount: sellAmount, received_amount: buyAmount });
         setSellAmount('');
         setBuyAmount('');
       }
@@ -115,6 +115,51 @@ const SwapCard = ({ setTokenInfo, tokenInfo, gas, ethBalance, networkInfo, conne
       <h2 className="text-3xl font-bold text-center mb-6">
         SWAP
       </h2>
+
+      <div class="mb-4 bg-white dark:bg-gray-800 p-5 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700">
+        <p class="text-lg font-bold text-gray-900 dark:text-white mb-4">
+          Supported Network:
+          <span class="ml-2 px-3 py-1 bg-blue-500 text-white text-xs font-medium rounded-full hover:bg-blue-600 transition duration-150 cursor-default shadow-sm">
+            Sepolia
+          </span>
+        </p>
+        <div>
+          <p>Upcoming :</p>
+          <div class="flex flex-wrap gap-2 my-2">
+            <span class="px-3 py-1 bg-green-500 text-white text-xs font-medium rounded-full hover:bg-green-600 transition duration-150 cursor-default shadow-sm">
+              Unichain
+            </span>
+            <span class="px-3 py-1 bg-sky-500 text-white text-xs font-medium rounded-full hover:bg-sky-600 transition duration-150 cursor-default shadow-sm">
+              Arbitrum
+            </span>
+            <span class="px-3 py-1 bg-red-500 text-white text-xs font-medium rounded-full hover:bg-red-600 transition duration-150 cursor-default shadow-sm">
+              Avalanche
+            </span>
+            <span class="px-3 py-1 bg-yellow-500 text-gray-900 text-xs font-medium rounded-full hover:bg-yellow-600 transition duration-150 cursor-default shadow-sm">
+              BNB Chain
+            </span>
+            <span class="px-3 py-1 bg-indigo-500 text-white text-xs font-medium rounded-full hover:bg-indigo-600 transition duration-150 cursor-default shadow-sm">
+              Base
+            </span>
+            <span class="px-3 py-1 bg-pink-500 text-white text-xs font-medium rounded-full hover:bg-pink-600 transition duration-150 cursor-default shadow-sm">
+              Optimism
+            </span>
+            <span class="px-3 py-1 bg-purple-500 text-white text-xs font-medium rounded-full hover:bg-purple-600 transition duration-150 cursor-default shadow-sm">
+              Polygon
+            </span>
+            <span class="px-3 py-1 bg-orange-500 text-white text-xs font-medium rounded-full hover:bg-orange-600 transition duration-150 cursor-default shadow-sm">
+              Blast
+            </span>
+            <span class="px-3 py-1 bg-lime-500 text-gray-900 text-xs font-medium rounded-full hover:bg-lime-600 transition duration-150 cursor-default shadow-sm">
+              Zora
+            </span>
+            <span class="px-3 py-1 bg-teal-500 text-white text-xs font-medium rounded-full hover:bg-teal-600 transition duration-150 cursor-default shadow-sm">
+              Monad
+            </span>
+          </div>
+        </div>
+
+      </div>
 
       <div className="space-y-1 mb-6 relative">
         <div className='rounded-2xl bg-gray-900/70 border border-gray-700 p-6'>
@@ -216,7 +261,7 @@ const SwapCard = ({ setTokenInfo, tokenInfo, gas, ethBalance, networkInfo, conne
       {isSwapped && (
         <div className="text-sm mb-4 space-y-2 p-3 bg-gray-700 rounded-lg my-4">
           <div className="text-center text-gray-200">
-            <span>Successfully swapped <span className='text-red-400'>{isSwapped.gone_amount ? isSwapped.gone_amount:'0'}</span> {tokenInfo.name ? tokenInfo.name:'token'} for <span className='text-green-400'>{isSwapped.received_amount ? isSwapped.received_amount:'0'}</span> {buyToken}</span>
+            <span>Successfully swapped <span className='text-red-400'>{isSwapped.gone_amount ? isSwapped.gone_amount : '0'}</span> {tokenInfo.name ? tokenInfo.name : 'token'} for <span className='text-green-400'>{isSwapped.received_amount ? isSwapped.received_amount : '0'}</span> {buyToken}</span>
           </div>
         </div>
       )}
