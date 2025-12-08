@@ -2,7 +2,7 @@ import React, { useState, useEffect, } from "react";
 import { ethers } from "ethers";
 import tokenArtifact from "./abis/MyToken.json"; // ABI generated from the contract
 import LiquidityCard from "./components/LiquidityCard";
-import Swap from "./components/SwapCard";
+import SwapCard from "./components/SwapCard";
 
 
 const ABI = tokenArtifact.abi;
@@ -11,7 +11,7 @@ const BYTECODE = tokenArtifact.bytecode;
 export default function DeployToken() {
   const [account, setAccount] = useState(null);
   const [name, setName] = useState('');
-  const [tokenInfo, setTokenInfo] = useState({ name: '', symbol: '', supply: '' });
+  const [tokenInfo, setTokenInfo] = useState(false);
   const [symbol, setSymbol] = useState("");
   const [supply, setSupply] = useState("");
   const [status, setStatus] = useState("");
@@ -25,6 +25,11 @@ export default function DeployToken() {
   // Check if user is already connected (on page reload)
   useEffect(() => {
     const storedAccount = localStorage.getItem("account");
+    const storedTokenInfo = localStorage.getItem("tokenInfo");
+    // const text = localStorage.setItem("tokenInfo",false);
+    if (storedTokenInfo) {
+      setTokenInfo(JSON.parse(storedTokenInfo));
+    }
     if (storedAccount) {
       setAccount(storedAccount);
       getNetwork();
@@ -168,7 +173,7 @@ export default function DeployToken() {
       }
       setIsDeploying(true);
       setStatus(`Preparing transaction on ${networkInfo?.name || "current network"}...`);
-      setTokenInfo({});
+      // setTokenInfo({});
       setTxHash('');
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
@@ -185,11 +190,15 @@ export default function DeployToken() {
       await contract.waitForDeployment();
 
       const addr = await contract.getAddress();
-      setTokenInfo(prev => ({
-        ...prev, name: name, symbol: symbol,
+      let temp = {
+        name: name, symbol: symbol,
         supply: parseInt(supply),
         tokenAddress: addr, amount: parseInt(supply), abi: ABI
-      }));
+      };
+      setTokenInfo(()=>{
+        localStorage.setItem("tokenInfo", JSON.stringify(temp));
+        return temp;
+      });
       setName('');
       setSymbol('');
       setSupply('');
@@ -198,6 +207,7 @@ export default function DeployToken() {
       setTxHash(txHash);
       setIsDeploying(false);
       setStatus(` Deployed successfully on ${networkInfo.name}`);
+      
     } catch (err) {
       setIsDeploying(false);
       console.error("Deployment Error:", err);
@@ -319,14 +329,25 @@ export default function DeployToken() {
             </div>
 
             {networkInfo ?
-              <button
-                onClick={deployAndMint}
-                className="bg-gradient-to-r from-gray-600 via-gray-500 to-gray-600 hover:bg-gradient-to-tr text-white py-3 px-6 rounded-full w-full mt-4"
-                disabled={!account}
-              >
+              <>
+                {!tokenInfo ? <button
+                  onClick={deployAndMint}
+                  className="bg-gradient-to-r from-gray-600 via-gray-500 to-gray-600 hover:bg-gradient-to-tr text-white py-3 px-6 rounded-full w-full mt-4"
+                  disabled={!account}
+                >
 
-                Deploy & Mint  <span className="text-transparent bg-clip-text bg-gray-900 text-lg font-bold">{name ? name : null}</span> on {networkInfo ? networkInfo.name : 'current network'}
-              </button>
+                  Deploy & Mint  <span className="text-transparent bg-clip-text bg-gray-900 text-lg font-bold">{name ? name : null}</span> on {networkInfo ? networkInfo.name : 'current network'}
+                </button>
+                  :
+                  <button
+                    onClick={() => {setTokenInfo(false);localStorage.setItem('tokenInfo',false)}}
+                    className="bg-gradient-to-r from-gray-600 via-gray-500 to-gray-600 hover:bg-gradient-to-tr text-white py-3 px-6 rounded-full w-full mt-4"
+                    disabled={!account}
+                  >
+
+                    Mint New
+                  </button>}
+              </>
               :
               <button
                 onClick={connectWallet}
@@ -351,7 +372,7 @@ export default function DeployToken() {
           {/* Display Contract Address after Successful Deployment */}
           {tokenInfo.tokenAddress && (
             <p className="mt-4 text-center">
-              Your token contract address:<br />
+              {tokenInfo.name ? tokenInfo.name:'token'} contract address:<br />
               <code>{tokenInfo.tokenAddress}</code>
             </p>
           )}
@@ -371,8 +392,8 @@ export default function DeployToken() {
         </div>
         {(networkInfo || txHash) && <LiquidityCard
           setTokenInfo={setTokenInfo} networkInfo={networkInfo} connectWallet={connectWallet} gas={gas} ethBalance={ethBalance} tokenInfo={tokenInfo} />}
-
-          <Swap/>
+        {(networkInfo || txHash) && <SwapCard
+          setTokenInfo={setTokenInfo} networkInfo={networkInfo} connectWallet={connectWallet} gas={gas} ethBalance={ethBalance} tokenInfo={tokenInfo} />}
       </div>
     </div>
   );

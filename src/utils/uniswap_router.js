@@ -17,6 +17,10 @@ export const uniswap_v2_router2_contract_address = {
   '143':'0x4b2ab38dbf28d31d467aa8993f6c2585981d6804'
 }
 
+export const wrapped_adrs = {
+  '11155111':'0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14',
+}
+
 // Token and Uniswap Router ABI retrieval function
 export async function getRouterContract(signer,router_adrs) {
   const response = await fetch(

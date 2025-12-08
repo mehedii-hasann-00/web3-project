@@ -12,13 +12,22 @@ export default function LiquidityCard({ setTokenInfo, tokenInfo, gas, ethBalance
     const [liqHash, setLiqHash] = useState(false);
 
 
-    console.log(uniswap_v2_router2_contract_address[networkInfo.chainId])
-    console.log(networkInfo.chainId)
+    // console.log(uniswap_v2_router2_contract_address[networkInfo.chainId])
+    // console.log(networkInfo.chainId);
+
+    useEffect(() => {
+        if (tokenInfo.isApproved) {
+            setIsApproved(true);
+        }
+    }, [])
+
+
 
     const handleAddLiquidity = async () => {
         try {
             if (!isApproved) {
-                alert(`Please approve ${tokenInfo.name} first.`)
+                alert(`Please approve ${tokenInfo.name} first.`);
+                return;
             }
             if (!tokenInfo.amount) {
                 alert('Mint token to add liquidity');
@@ -41,8 +50,16 @@ export default function LiquidityCard({ setTokenInfo, tokenInfo, gas, ethBalance
             const signer = await provider.getSigner();
             const res = await addLiquidity(tokenInfo.tokenAddress, ethers.parseUnits(String(tokenAmount), 18), ethers.parseEther(String(ethAmount)), signer, uniswap_v2_router2_contract_address[networkInfo.chainId]);
             setLiqHash(res.hash);
+            console.log(res);
             setIsLoading(false);
-            setTokenInfo(prev => ({ ...prev, amount: tokenInfo.amount - tokenAmount }));
+            setTokenInfo(() => {
+                if (localStorage.getItem('tokenInfo')) {
+                    let token = JSON.parse(localStorage.getItem('tokenInfo'));
+                    token = { ...token, amount: tokenInfo.amount - tokenAmount,res:res };
+                    localStorage.setItem('tokenInfo', JSON.stringify(token));
+                    return token;
+                }
+            })
             setIsLiqAdded(true);
         } catch (error) {
             setIsLoading(false);
@@ -74,7 +91,12 @@ export default function LiquidityCard({ setTokenInfo, tokenInfo, gas, ethBalance
             await tx.wait();
             setIsApproving(false);
             setIsApproved(true);
-
+            setTokenInfo(() => {
+                let token = JSON.parse(localStorage.getItem('tokenInfo'));
+                token = { ...token, isApproved: true };
+                localStorage.setItem('tokenInfo', JSON.stringify(token));
+                return token;
+            })
         } catch (error) {
             setIsApproving(false);
         }
@@ -97,6 +119,7 @@ export default function LiquidityCard({ setTokenInfo, tokenInfo, gas, ethBalance
         setTokenAmount(temp);
     }
 
+    // console.log(tokenInfo);
     return (
         <div className="w-full max-w-lg bg-gray-800 p-8 rounded-lg shadow-lg text-white">
             <h2 className="text-3xl font-bold text-center mb-6">
@@ -147,7 +170,7 @@ export default function LiquidityCard({ setTokenInfo, tokenInfo, gas, ethBalance
             <div className="bg-gray-700 p-3 rounded-md text-sm mb-4">
                 <p><strong>Token:</strong> {!tokenInfo.name ? "Not deployed yet" : tokenInfo.name}</p>
                 <p><strong>{networkInfo ? networkInfo.name : "Coin"} Balance:</strong> {ethBalance ? ethBalance : ethBalance}</p>
-                <p><strong>{tokenInfo.name ? tokenInfo.name : 'Token'} Balance:</strong> {tokenInfo.amount ? tokenInfo.amount : 'Not Available'}</p>
+                <p><strong>Deployer {tokenInfo.name ? tokenInfo.name : 'Token'} Balance:</strong> {tokenInfo.amount ? tokenInfo.amount : 'Not Available'}</p>
                 <p>estimated gas : {gas ? gas : null} {networkInfo ? networkInfo.name : ""}</p>
             </div>
 
