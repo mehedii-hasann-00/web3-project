@@ -217,7 +217,7 @@ export default function DeployToken() {
   }
 
   return (
-    <div className="bg-gradient-to-tr from-gray-500 via-gray-300 to-gray-800 text-white min-h-screen py-10">
+    <div className="bg-gradient-to-tr from-gray-500 via-gray-300 to-gray-800 text-white min-h-screen py-10 overflow-x-hidden">
       <div className="flex justify-between">
         <div></div>
         <div>
@@ -373,14 +373,14 @@ export default function DeployToken() {
           {tokenInfo.tokenAddress && (
             <p className="mt-4 text-center">
               {tokenInfo.name ? tokenInfo.name:'token'} contract address:<br />
-              <code>{tokenInfo.tokenAddress}</code>
+              <code className="break-all">{tokenInfo.tokenAddress}</code>
             </p>
           )}
 
           {txHash && (
             <div className="flex gap-2">
               <p className="mt-4 text-center text-sm overflow-hidden text-ellipsis whitespace-nowrap">
-                <strong>Tx Hash :</strong> {txHash}
+                <strong className="break-all">Tx Hash :</strong> {txHash}
               </p>
               <i class="fa fa-regular fa-copy cursor-pointer mt-4" onClick={() => {
                 navigator.clipboard.writeText(txHash);
