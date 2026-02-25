@@ -250,7 +250,7 @@ export default function DeployToken() {
       <section class="py-10 text-center">
         <div class="max-w-4xl mx-auto px-4">
 
-          <h1 class="text-6xl font-extrabold tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-300 to-white">
+          <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-300 to-white">
             The Future of Decentralized Swaps
           </h1>
 
